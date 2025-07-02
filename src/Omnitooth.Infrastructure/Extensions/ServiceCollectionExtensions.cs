@@ -6,6 +6,8 @@ using Omnitooth.Core.Interfaces;
 using Omnitooth.Infrastructure.Services.Input;
 using Omnitooth.Infrastructure.Services.Hid;
 using Omnitooth.Infrastructure.Services.Bluetooth;
+using Omnitooth.Infrastructure.Services.Monitoring;
+using Omnitooth.Infrastructure.Services.Compliance;
 
 namespace Omnitooth.Infrastructure.Extensions;
 
@@ -46,6 +48,13 @@ public static class ServiceCollectionExtensions
         });
         services.AddSingleton<ICircuitBreaker, BluetoothCircuitBreaker>();
         
+        // Register health monitoring services
+        services.AddSingleton<IHealthMonitorService, BluetoothHealthMonitor>();
+        
+        // Register compliance management services
+        services.AddSingleton<IBluetoothComplianceManager, BluetoothApiCompatibilityLayer>();
+        
+        // Register main Bluetooth service (depends on all above services)
         services.AddSingleton<IBluetoothService, BluetoothGattServerService>();
         
         return services;

@@ -4,6 +4,7 @@ using Omnitooth.Core.Configuration;
 using Omnitooth.Core.Enums;
 using Omnitooth.Core.Interfaces;
 using Omnitooth.Core.Models;
+using System.Diagnostics;
 using System.Collections.Concurrent;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -26,6 +27,7 @@ public sealed class BluetoothGattServerService : IBluetoothService
     private readonly BluetoothConfiguration _config;
     private readonly IBluetoothServiceFactory _serviceFactory;
     private readonly ICircuitBreaker _circuitBreaker;
+    private readonly IHealthMonitorService _healthMonitor;
     private readonly Subject<CoreBluetoothDevice> _deviceConnectedSubject = new();
     private readonly Subject<CoreBluetoothDevice> _deviceDisconnectedSubject = new();
     private readonly Subject<(CoreBluetoothDevice Device, ConnectionState OldState, ConnectionState NewState)> _connectionStateChangedSubject = new();
@@ -53,16 +55,19 @@ public sealed class BluetoothGattServerService : IBluetoothService
     /// <param name="options">Bluetooth configuration options.</param>
     /// <param name="serviceFactory">The Bluetooth service factory for creating GATT services.</param>
     /// <param name="circuitBreaker">Circuit breaker for handling operation failures and recovery.</param>
+    /// <param name="healthMonitor">Health monitoring service for metrics and diagnostics.</param>
     public BluetoothGattServerService(
         ILogger<BluetoothGattServerService> logger, 
         IOptions<BluetoothConfiguration> options,
         IBluetoothServiceFactory serviceFactory,
-        ICircuitBreaker circuitBreaker)
+        ICircuitBreaker circuitBreaker,
+        IHealthMonitorService healthMonitor)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _config = options?.Value ?? throw new ArgumentNullException(nameof(options));
         _serviceFactory = serviceFactory ?? throw new ArgumentNullException(nameof(serviceFactory));
         _circuitBreaker = circuitBreaker ?? throw new ArgumentNullException(nameof(circuitBreaker));
+        _healthMonitor = healthMonitor ?? throw new ArgumentNullException(nameof(healthMonitor));
     }
 
     /// <inheritdoc />
@@ -96,8 +101,12 @@ public sealed class BluetoothGattServerService : IBluetoothService
         _logger.LogInformation("Starting Bluetooth GATT server service");
         _serviceState = ServiceState.Starting;
 
+        var startStopwatch = Stopwatch.StartNew();
         try
         {
+            // Start health monitoring
+            await _healthMonitor.StartMonitoringAsync(cancellationToken);
+            _logger.LogInformation("✅ Health monitoring started");
             // Create GATT service provider with circuit breaker protection
             await _circuitBreaker.ExecuteAsync(async ct => await CreateGattServiceAsync(), cancellationToken);
 
@@ -111,7 +120,11 @@ public sealed class BluetoothGattServerService : IBluetoothService
             await _circuitBreaker.ExecuteAsync(async ct => await StartAndVerifyAdvertisingAsync(), cancellationToken);
 
             _serviceState = ServiceState.Running;
-            _logger.LogInformation("Bluetooth GATT server started successfully");
+            startStopwatch.Stop();
+            
+            // Record successful startup
+            _healthMonitor.RecordSuccess("BluetoothGattServerStartup", startStopwatch.Elapsed);
+            _logger.LogInformation("Bluetooth GATT server started successfully in {Duration}ms", startStopwatch.ElapsedMilliseconds);
             
             // Log circuit breaker metrics
             LogCircuitBreakerMetrics();
@@ -121,6 +134,8 @@ public sealed class BluetoothGattServerService : IBluetoothService
         }
         catch (CircuitBreakerOpenException ex)
         {
+            startStopwatch.Stop();
+            _healthMonitor.RecordFailure("BluetoothGattServerStartup", startStopwatch.Elapsed, ex);
             _logger.LogError("Circuit breaker prevented Bluetooth GATT server start. State: {State}, Next retry: {NextRetry}", 
                 ex.State, ex.NextRetryTime);
             _serviceState = ServiceState.Stopped;
@@ -128,6 +143,8 @@ public sealed class BluetoothGattServerService : IBluetoothService
         }
         catch (Exception ex)
         {
+            startStopwatch.Stop();
+            _healthMonitor.RecordFailure("BluetoothGattServerStartup", startStopwatch.Elapsed, ex);
             _logger.LogError(ex, "Failed to start Bluetooth GATT server");
             _serviceState = ServiceState.Stopped;
             throw;
@@ -165,6 +182,11 @@ public sealed class BluetoothGattServerService : IBluetoothService
             CleanupGattService();
 
             _serviceState = ServiceState.Stopped;
+            
+            // Stop health monitoring
+            await _healthMonitor.StopMonitoringAsync();
+            _logger.LogInformation("✅ Health monitoring stopped");
+            
             _logger.LogInformation("Bluetooth GATT server stopped successfully");
         }
         catch (Exception ex)
@@ -198,6 +220,7 @@ public sealed class BluetoothGattServerService : IBluetoothService
             return;
         }
 
+        var sendStopwatch = Stopwatch.StartNew();
         try
         {
             if (_reportCharacteristic == null)
@@ -217,6 +240,10 @@ public sealed class BluetoothGattServerService : IBluetoothService
                     await _reportCharacteristic.NotifyValueAsync(writer.DetachBuffer());
                     device.UpdateActivity();
                     
+                    sendStopwatch.Stop();
+                    _healthMonitor.RecordSuccess("HidReportSend", sendStopwatch.Elapsed);
+                    _healthMonitor.RecordMetric("HidReportSize", report.Data.Length);
+                    
                     _logger.LogTrace("Sent HID report to device {DeviceId}: {ReportType} ({DataLength} bytes)",
                         deviceId, report.ReportType, report.Data.Length);
                 }, cancellationToken);
@@ -228,11 +255,15 @@ public sealed class BluetoothGattServerService : IBluetoothService
         }
         catch (CircuitBreakerOpenException ex)
         {
+            sendStopwatch.Stop();
+            _healthMonitor.RecordFailure("HidReportSend", sendStopwatch.Elapsed, ex);
             _logger.LogWarning("Circuit breaker rejected HID report for device {DeviceId}. State: {State}, Next retry: {NextRetry}", 
                 deviceId, ex.State, ex.NextRetryTime);
         }
         catch (Exception ex)
         {
+            sendStopwatch.Stop();
+            _healthMonitor.RecordFailure("HidReportSend", sendStopwatch.Elapsed, ex);
             _logger.LogError(ex, "Failed to send HID report to device {DeviceId}", deviceId);
         }
     }

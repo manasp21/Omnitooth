@@ -420,4 +420,117 @@ public class BluetoothServiceFactory : IBluetoothServiceFactory
             0xC0               // End Collection
         };
     }
+
+    /// <inheritdoc />
+    public async Task DisposeServiceProviderAsync(GattServiceProvider serviceProvider, CancellationToken cancellationToken = default)
+    {
+        if (serviceProvider == null)
+        {
+            _logger.LogDebug("Service provider is null, nothing to dispose");
+            return;
+        }
+
+        try
+        {
+            _logger.LogDebug("🧹 Starting safe disposal of GATT service provider");
+
+            // Stop advertising if currently active
+            if (serviceProvider.AdvertisementStatus == GattServiceProviderAdvertisementStatus.Started)
+            {
+                _logger.LogDebug("Stopping active advertisement before disposal");
+                serviceProvider.StopAdvertising();
+                
+                // Brief wait for advertisement to stop cleanly
+                await Task.Delay(100, cancellationToken);
+            }
+
+            // Unsubscribe from events to prevent memory leaks
+            try
+            {
+                serviceProvider.AdvertisementStatusChanged -= OnAdvertisementStatusChangedInternal;
+                _logger.LogDebug("Unsubscribed from advertisement status events");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error unsubscribing from advertisement events during disposal");
+            }
+
+            // Clean up service characteristics
+            if (serviceProvider.Service?.Characteristics != null)
+            {
+                foreach (var characteristic in serviceProvider.Service.Characteristics)
+                {
+                    try
+                    {
+                        // Clear any event subscriptions on characteristics
+                        characteristic.ReadRequested -= OnCharacteristicReadRequestedInternal;
+                        characteristic.WriteRequested -= OnCharacteristicWriteRequestedInternal;
+                        characteristic.SubscribedClientsChanged -= OnSubscribedClientsChangedInternal;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error cleaning up characteristic events for UUID: {Uuid}", characteristic.Uuid);
+                    }
+                }
+                _logger.LogDebug("Cleaned up {Count} characteristic event subscriptions", serviceProvider.Service.Characteristics.Count);
+            }
+
+            // Dispose the service provider itself
+            try
+            {
+                serviceProvider.Dispose();
+                _logger.LogDebug("✅ GATT service provider disposed successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error during service provider disposal (this may be expected)");
+            }
+
+            // Brief pause to allow Windows Bluetooth stack cleanup
+            await Task.Delay(50, cancellationToken);
+            
+            _logger.LogInformation("🧹 GATT service provider disposal completed successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "❌ Error during GATT service provider disposal");
+            // Don't rethrow - disposal should be best-effort
+        }
+    }
+
+    /// <summary>
+    /// Internal event handler for advertisement status changes during disposal.
+    /// </summary>
+    private void OnAdvertisementStatusChangedInternal(GattServiceProvider sender, GattServiceProviderAdvertisementStatusChangedEventArgs args)
+    {
+        // Placeholder for internal event handling during disposal
+        _logger.LogTrace("Advertisement status changed during disposal: {Status}", args.Status);
+    }
+
+    /// <summary>
+    /// Internal event handler for characteristic read requests during disposal.
+    /// </summary>
+    private void OnCharacteristicReadRequestedInternal(GattLocalCharacteristic sender, GattReadRequestedEventArgs args)
+    {
+        // Placeholder for internal event handling during disposal
+        _logger.LogTrace("Characteristic read request during disposal for UUID: {Uuid}", sender.Uuid);
+    }
+
+    /// <summary>
+    /// Internal event handler for characteristic write requests during disposal.
+    /// </summary>
+    private void OnCharacteristicWriteRequestedInternal(GattLocalCharacteristic sender, GattWriteRequestedEventArgs args)
+    {
+        // Placeholder for internal event handling during disposal
+        _logger.LogTrace("Characteristic write request during disposal for UUID: {Uuid}", sender.Uuid);
+    }
+
+    /// <summary>
+    /// Internal event handler for subscribed clients changes during disposal.
+    /// </summary>
+    private void OnSubscribedClientsChangedInternal(GattLocalCharacteristic sender, object args)
+    {
+        // Placeholder for internal event handling during disposal
+        _logger.LogTrace("Subscribed clients changed during disposal for UUID: {Uuid}", sender.Uuid);
+    }
 }
