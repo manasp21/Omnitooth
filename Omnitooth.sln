@@ -1,0 +1,60 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Omnitooth.Core", "src\Omnitooth.Core\Omnitooth.Core.csproj", "{B8F0E9E1-1234-4567-8901-234567890123}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Omnitooth.Infrastructure", "src\Omnitooth.Infrastructure\Omnitooth.Infrastructure.csproj", "{B8F0E9E1-1234-4567-8901-234567890124}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Omnitooth.Application", "src\Omnitooth.Application\Omnitooth.Application.csproj", "{B8F0E9E1-1234-4567-8901-234567890125}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Omnitooth.Presentation", "src\Omnitooth.Presentation\Omnitooth.Presentation.csproj", "{B8F0E9E1-1234-4567-8901-234567890126}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Omnitooth.Core.Tests", "tests\Omnitooth.Core.Tests\Omnitooth.Core.Tests.csproj", "{B8F0E9E1-1234-4567-8901-234567890127}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Omnitooth.Infrastructure.Tests", "tests\Omnitooth.Infrastructure.Tests\Omnitooth.Infrastructure.Tests.csproj", "{B8F0E9E1-1234-4567-8901-234567890128}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Omnitooth.Application.Tests", "tests\Omnitooth.Application.Tests\Omnitooth.Application.Tests.csproj", "{B8F0E9E1-1234-4567-8901-234567890129}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B8F0E9E1-1234-4567-8901-234567890123}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890123}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890123}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890123}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890124}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890124}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890124}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890124}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890125}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890125}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890125}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890125}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890126}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890126}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890126}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890126}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890127}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890127}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890127}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890127}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890128}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890128}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890128}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890128}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890129}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890129}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890129}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8F0E9E1-1234-4567-8901-234567890129}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B8F0E9E1-1234-4567-8901-234567890130}
+	EndGlobalSection
+EndGlobal

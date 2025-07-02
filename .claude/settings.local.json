@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(true)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet build)",
+      "Bash(wget:*)",
+      "Bash(sudo dpkg:*)",
+      "Bash(rm:*)",
+      "Bash(sudo apt-get:*)",
+      "Bash(sudo apt-get install:*)",
+      "Bash(cd:*)"
+    ],
+    "deny": []
+  }
+}
