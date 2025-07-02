@@ -34,6 +34,18 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IHidService, HidReportBuilderService>();
         
         // Register Bluetooth services
+        services.AddSingleton<IBluetoothServiceFactory, BluetoothServiceFactory>();
+        
+        // Configure and register circuit breaker
+        services.Configure<CircuitBreakerOptions>(options =>
+        {
+            var bluetoothConfig = configuration.GetSection("Omnitooth:Bluetooth");
+            options.FailureThreshold = bluetoothConfig.GetValue<int>("CircuitBreakerFailureThreshold", 5);
+            options.RecoveryTimeout = TimeSpan.FromSeconds(bluetoothConfig.GetValue<int>("CircuitBreakerRecoveryTimeoutSeconds", 30));
+            options.HalfOpenMaxAttempts = bluetoothConfig.GetValue<int>("CircuitBreakerHalfOpenMaxAttempts", 3);
+        });
+        services.AddSingleton<ICircuitBreaker, BluetoothCircuitBreaker>();
+        
         services.AddSingleton<IBluetoothService, BluetoothGattServerService>();
         
         return services;
